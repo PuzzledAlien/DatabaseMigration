@@ -30,8 +30,24 @@ namespace DatabaseMigration.Core
             int? bulkCopyTimeout = null,
             int? batchSize = null)
         {
-            return 0;
+            if (!(connection is SqlConnection conn))
+            {
+                return 0;
+            }
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open(); //打开Connection连接  
+            }
+            using (var bulkCopy = new SqlBulkCopy(conn))
+            {
+                bulkCopy.BatchSize = dataTable.Rows.Count;
+                bulkCopy.DestinationTableName = destinationTableName ?? dataTable.TableName;
+                bulkCopy.BulkCopyTimeout = conn.ConnectionTimeout;
+                await bulkCopy.WriteToServerAsync(dataTable);
+                return dataTable.Rows.Count;
+            }
         }
+
         public override int BulkCopy(
             DbConnection connection,
             DataTable dataTable,
@@ -39,7 +55,22 @@ namespace DatabaseMigration.Core
             int? bulkCopyTimeout = null,
             int? batchSize = null)
         {
-            return 0;
+            if (!(connection is SqlConnection conn))
+            {
+                return 0;
+            }
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open(); //打开Connection连接  
+            }
+            using (var bulkCopy = new SqlBulkCopy(conn))
+            {
+                bulkCopy.BatchSize = dataTable.Rows.Count;
+                bulkCopy.DestinationTableName = destinationTableName ?? dataTable.TableName;
+                bulkCopy.BulkCopyTimeout = conn.ConnectionTimeout;
+                bulkCopy.WriteToServer(dataTable);
+                return dataTable.Rows.Count;
+            }
         }
 
         public override DbConnector GetDbConnector()
