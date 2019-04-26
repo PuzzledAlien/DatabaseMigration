@@ -311,7 +311,7 @@ namespace DatabaseMigration.Core
                 else
                 {
                     string[] sqls = script.Split(new char[] { this.Option.ScriptSplitChar }, StringSplitOptions.RemoveEmptyEntries);
-                    int count = sqls.Count();
+                    int count = sqls.Length;
 
                     int i = 0;
                     foreach (string sql in sqls)
@@ -353,7 +353,7 @@ namespace DatabaseMigration.Core
                         }
                     });
 
-                    sourceInterpreter.OnDataRead += async (table, columns, data, dbDataReader) =>
+                    sourceInterpreter.OnDataRead += async (table, columns, data, dataTable) =>
                     {
                         try
                         {
@@ -376,7 +376,7 @@ namespace DatabaseMigration.Core
 
                             if (!this.Option.SplitScriptsToExecute)
                             {
-                                await targetInterpreter.BulkCopyAsync(dbConnection, dbDataReader, table.Name);
+                                await targetInterpreter.BulkCopyAsync(dbConnection, dataTable, table.Name);
                                 //targetInterpreter.ExecuteNonQuery(dbConnection, script, paramters, false);
                             }
                             else
