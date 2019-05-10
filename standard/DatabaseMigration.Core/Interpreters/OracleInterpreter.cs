@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DatabaseMigration.Core.Interpreters;
 
 namespace DatabaseMigration.Core
 {
@@ -28,8 +29,27 @@ namespace DatabaseMigration.Core
             int? bulkCopyTimeout = null,
             int? batchSize = null)
         {
-            return 0;
+            if (!(connection is OracleConnection conn))
+            {
+                return 0;
+            }
+
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
+            
+            using (var bulkCopy = new OracleBulkCopy(conn))
+            {
+                bulkCopy.BatchSize = dataTable.Rows.Count;
+                bulkCopy.DestinationTableName = destinationTableName ?? dataTable.TableName;
+                bulkCopy.BulkCopyTimeout = conn.ConnectionTimeout;
+                await bulkCopy.WriteToServerAsync(dataTable);
+                return dataTable.Rows.Count;
+            }
         }
+
         public override int BulkCopy(
             DbConnection connection,
             DataTable dataTable,
@@ -37,7 +57,25 @@ namespace DatabaseMigration.Core
             int? bulkCopyTimeout = null,
             int? batchSize = null)
         {
-            return 0;
+            if (!(connection is OracleConnection conn))
+            {
+                return 0;
+            }
+
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
+
+            using (var bulkCopy = new OracleBulkCopy(conn))
+            {
+                bulkCopy.BatchSize = dataTable.Rows.Count;
+                bulkCopy.DestinationTableName = destinationTableName ?? dataTable.TableName;
+                bulkCopy.BulkCopyTimeout = conn.ConnectionTimeout;
+                bulkCopy.WriteToServer(dataTable);
+                return dataTable.Rows.Count;
+            }
         }
 
 
